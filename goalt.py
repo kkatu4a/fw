@@ -40,7 +40,6 @@ print(f"Описание: {goal_description}")
 print(f"Приоритет: {get_priority_label(priority)}")
 print(f"Дедлайн: {deadline}")
 print(f"Дней осталось: {days_to_complete}")
-print("-" * 40)
 
 print(f"Прогресс: {progress_percent}%")
 print(get_progress_status(progress_percent))
