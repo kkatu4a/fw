@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "title": "Пройти раздел про модели",
+    "goal_id": 1,
+    "is_done": false
+  },
+  {
+    "id": 2,
+    "title": "Пройти раздел про views",
+    "goal_id": 1,
+    "is_done": false
+  }
+]
