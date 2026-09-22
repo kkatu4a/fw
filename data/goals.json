@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "title": "Выучить Django",
+    "description": "Завершить курс по бэкенд-разработке",
+    "category_id": 3,
+    "priority": 1,
+    "created_date": "2026-09-01",
+    "deadline": "2026-09-15",
+    "progress": 25,
+    "is_completed": false
+  },
+  {
+    "id": 2,
+    "title": "Поесть",
+    "description": "Поесть в столовке",
+    "category_id": 2,
+    "priority": 1,
+    "created_date": "2026-09-15",
+    "deadline": "2026-09-15",
+    "progress": 100,
+    "is_completed": true
+  }
+]
