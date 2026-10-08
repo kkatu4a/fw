@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Optional
 
 from .categories import Category
+from .users import User
 
 
 class Goal:
@@ -14,6 +15,7 @@ class Goal:
         goal_id: int,
         title: str,
         description: str,
+        owner: User,
         category: Category,
         priority: int,
         created_date: str,
@@ -25,6 +27,7 @@ class Goal:
         self.id = goal_id
         self.title = title
         self.description = description
+        self.owner = owner
         self.category = category
         self.priority = priority
         self.created_date = created_date
@@ -74,17 +77,20 @@ class Goal:
         status = "выполнена" if self.is_completed else "в работе"
         return (
             f"Goal #{self.id}: {self.title} "
-            f"[{self.category.name}, {self.get_priority_label()}, "
-            f"{self.progress}%, {status}]"
+            f"[{self.owner.name}, {self.category.name}, "
+            f"{self.get_priority_label()}, {self.progress}%, {status}]"
         )
 
     @classmethod
-    def from_data(cls, data: dict, category: Category) -> "Goal":
-        """Создать цель из словаря и объекта Category."""
+    def from_data(
+        cls, data: dict, owner: User, category: Category
+    ) -> "Goal":
+        """Создать цель из словаря и объектов User, Category."""
         return cls(
             goal_id=data["id"],
             title=data["title"],
             description=data["description"],
+            owner=owner,
             category=category,
             priority=data["priority"],
             created_date=data["created_date"],
@@ -99,6 +105,7 @@ class Goal:
             "id": self.id,
             "title": self.title,
             "description": self.description,
+            "user_id": self.owner.id,
             "category_id": self.category.id,
             "priority": self.priority,
             "created_date": self.created_date,
@@ -112,6 +119,7 @@ def add_goal(
     goals: list[Goal],
     title: str,
     description: str,
+    owner: User,
     category: Category,
     priority: int,
     created_date: str,
@@ -119,8 +127,10 @@ def add_goal(
 ) -> Goal:
     """Создать цель и добавить её в коллекцию."""
     new_id = max((g.id for g in goals), default=0) + 1
-    goal = Goal(new_id, title, description, category, priority,
-                created_date, deadline)
+    goal = Goal(
+        new_id, title, description, owner, category,
+        priority, created_date, deadline,
+    )
     goals.append(goal)
     return goal
 
@@ -137,6 +147,11 @@ def find_goals_by_title(goals: list[Goal], query: str) -> list[Goal]:
     """Найти цели по подстроке названия."""
     q = query.lower()
     return [g for g in goals if q in g.title.lower()]
+
+
+def find_goals_by_user(goals: list[Goal], user_id: int) -> list[Goal]:
+    """Найти цели по владельцу."""
+    return [g for g in goals if g.owner.id == user_id]
 
 
 def filter_goals_by_category(

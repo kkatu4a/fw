@@ -15,6 +15,7 @@ from models.goals import (
     filter_goals_by_status,
     find_goal_by_id,
     find_goals_by_title,
+    find_goals_by_user,
     get_statistics,
     show_goals,
     sort_goals_by_deadline,
@@ -48,34 +49,6 @@ from storage import (
 from utils import input_date, input_int, input_str
 
 
-def menu_add_goal(
-    goals: list[Goal], categories: list[Category]
-) -> None:
-    """Сценарий добавления цели."""
-    if not categories:
-        print("Сначала добавьте хотя бы одну категорию.")
-        return
-    title = input_str("Название цели: ")
-    description = input_str("Описание: ")
-    show_categories(categories)
-    category_id = input_int("ID категории: ")
-    category = next(
-        (c for c in categories if c.id == category_id), None
-    )
-    if category is None:
-        print("Категория не найдена.")
-        return
-    priority = input_int(
-        "Приоритет (1 — высокий, 2 — средний, 3 — низкий): ",
-        min_value=1, max_value=3,
-    )
-    deadline = input_date("Дедлайн (ДД.ММ.ГГГГ): ")
-    created = datetime.now().strftime("%Y-%m-%d")
-    add_goal(goals, title, description, category, priority,
-             created, deadline)
-    print("Цель добавлена.")
-
-
 def menu_add_user(users: list[User]) -> None:
     """Сценарий добавления пользователя."""
     name = input_str("Имя: ")
@@ -89,6 +62,51 @@ def menu_add_category(categories: list[Category]) -> None:
     name = input_str("Название категории: ")
     add_category(categories, name)
     print("Категория добавлена.")
+
+
+def menu_add_goal(
+    goals: list[Goal],
+    users: list[User],
+    categories: list[Category],
+) -> None:
+    """Сценарий добавления цели."""
+    if not users:
+        print("Сначала добавьте хотя бы одного пользователя.")
+        return
+    if not categories:
+        print("Сначала добавьте хотя бы одну категорию.")
+        return
+
+    show_users(users)
+    user_id = input_int("ID пользователя-владельца: ")
+    owner = find_user_by_id(users, user_id)
+    if owner is None:
+        print("Пользователь не найден.")
+        return
+
+    title = input_str("Название цели: ")
+    description = input_str("Описание: ")
+
+    show_categories(categories)
+    category_id = input_int("ID категории: ")
+    category = next(
+        (c for c in categories if c.id == category_id), None
+    )
+    if category is None:
+        print("Категория не найдена.")
+        return
+
+    priority = input_int(
+        "Приоритет (1 — высокий, 2 — средний, 3 — низкий): ",
+        min_value=1, max_value=3,
+    )
+    deadline = input_date("Дедлайн (ДД.ММ.ГГГГ): ")
+    created = datetime.now().strftime("%Y-%m-%d")
+    add_goal(
+        goals, title, description, owner, category,
+        priority, created, deadline,
+    )
+    print("Цель добавлена.")
 
 
 def menu_add_stage(
@@ -166,6 +184,19 @@ def menu_search_goals(goals: list[Goal]) -> None:
     show_goals(found)
 
 
+def menu_goals_by_user(
+    goals: list[Goal], users: list[User]
+) -> None:
+    """Сценарий показа целей конкретного пользователя."""
+    show_users(users)
+    user_id = input_int("ID пользователя: ")
+    found = find_goals_by_user(goals, user_id)
+    if not found:
+        print("У пользователя нет целей.")
+        return
+    show_goals(found)
+
+
 def menu_filter_by_category(
     goals: list[Goal], categories: list[Category]
 ) -> None:
@@ -212,7 +243,7 @@ def main() -> None:
     """Точка запуска: главное меню приложения."""
     users = load_users()
     categories = load_categories()
-    goals = load_goals(categories)
+    goals = load_goals(users, categories)
     stages = load_stages(goals)
     results = load_results(goals)
 
@@ -228,16 +259,17 @@ def main() -> None:
         print("5.  Показать все цели")
         print("6.  Добавить цель")
         print("7.  Найти цель по названию")
-        print("8.  Показать цели по категории")
-        print("9.  Показать цели (сортировка по дедлайну)")
-        print("10. Показать только выполненные")
-        print("11. Показать статистику")
-        print("12. Показать этапы")
-        print("13. Добавить этап")
-        print("14. Отметить этап выполненным")
-        print("15. Показать результаты")
-        print("16. Добавить результат")
-        print("17. Отметить результат достигнутым")
+        print("8.  Показать цели пользователя")
+        print("9.  Показать цели по категории")
+        print("10. Показать цели (сортировка по дедлайну)")
+        print("11. Показать только выполненные")
+        print("12. Показать статистику")
+        print("13. Показать этапы")
+        print("14. Добавить этап")
+        print("15. Отметить этап выполненным")
+        print("16. Показать результаты")
+        print("17. Добавить результат")
+        print("18. Отметить результат достигнутым")
         print("0.  Выход")
 
         choice = input("Выберите действие: ").strip()
@@ -253,28 +285,30 @@ def main() -> None:
         elif choice == "5":
             show_goals(goals)
         elif choice == "6":
-            menu_add_goal(goals, categories)
+            menu_add_goal(goals, users, categories)
         elif choice == "7":
             menu_search_goals(goals)
         elif choice == "8":
-            menu_filter_by_category(goals, categories)
+            menu_goals_by_user(goals, users)
         elif choice == "9":
-            menu_show_sorted(goals)
+            menu_filter_by_category(goals, categories)
         elif choice == "10":
-            show_goals(filter_goals_by_status(goals, True))
+            menu_show_sorted(goals)
         elif choice == "11":
-            menu_show_statistics(goals)
+            show_goals(filter_goals_by_status(goals, True))
         elif choice == "12":
-            menu_show_stages_for_goal(stages)
+            menu_show_statistics(goals)
         elif choice == "13":
-            menu_add_stage(stages, goals)
+            menu_show_stages_for_goal(stages)
         elif choice == "14":
-            menu_complete_stage(stages, goals)
+            menu_add_stage(stages, goals)
         elif choice == "15":
-            menu_show_results_for_goal(results)
+            menu_complete_stage(stages, goals)
         elif choice == "16":
-            menu_add_result(results, goals)
+            menu_show_results_for_goal(results)
         elif choice == "17":
+            menu_add_result(results, goals)
+        elif choice == "18":
             menu_mark_result(results, goals)
         elif choice == "0":
             save_users(users)

@@ -56,16 +56,21 @@ def save_categories(categories: list[Category]) -> None:
     _save_json("categories.json", [c.to_data() for c in categories])
 
 
-def load_goals(categories: list[Category]) -> list[Goal]:
-    """Загрузить цели, восстановив связи с категориями."""
+def load_goals(
+    users: list[User], categories: list[Category]
+) -> list[Goal]:
+    """Загрузить цели, восстановив связи с User и Category."""
     goals = []
     for data in _load_json("goals.json"):
+        owner = next(
+            (u for u in users if u.id == data["user_id"]), None
+        )
         category = next(
             (c for c in categories if c.id == data["category_id"]), None
         )
-        if category is None:
+        if owner is None or category is None:
             continue
-        goals.append(Goal.from_data(data, category))
+        goals.append(Goal.from_data(data, owner, category))
     return goals
 
 

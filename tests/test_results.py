@@ -10,9 +10,10 @@ from models.results import (
 
 
 def make_goal(goal_id=1):
+    owner = User(1, "Иван", "ivan@example.com")
     category = Category(1, "Работа")
-    return Goal(goal_id, "Цель", "Описание", category, 1,
-                "2026-09-01", "2026-09-15")
+    return Goal(goal_id, "Цель", "Описание", owner, category,
+                1, "2026-09-01", "2026-09-15")
 
 
 def test_result_creation():

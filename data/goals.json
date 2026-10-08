@@ -3,6 +3,7 @@
     "id": 1,
     "title": "Выучить Django",
     "description": "Завершить курс по бэкенд-разработке",
+    "user_id": 1,
     "category_id": 3,
     "priority": 1,
     "created_date": "2026-09-01",
